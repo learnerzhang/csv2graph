@@ -43,3 +43,17 @@ def test_post_api1():
     res = requests.post(url, json=postData)
     rsJson = json.loads(res.text)
     print(rsJson)
+
+
+def test_post_api2():
+    url = 'http://d65.mlamp.cn:1234/litemind/csv2graph'
+    postData = {
+        "filename": '18518067686的话单.csv',
+        "data": [
+            ['号码', '时间', '第三列', '类型', '时长'],
+            ['15522453452', '2018-08-21 12:32:21', '', '短信', '1分42秒'],
+            ['15522453452', '2018-08-21 12:32:21', '', '短信', '1分42秒']],
+    }
+    res = requests.post(url, json=postData)
+    rsJson = json.loads(res.text)
+    print(rsJson)
