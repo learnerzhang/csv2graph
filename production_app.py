@@ -98,17 +98,19 @@ def create_app(parse_args):
 
     @app.route("/litemind/csv2graph", methods=['POST'])
     def columns2entities():
-        print(request.args)
         filename = request.json.get("filename")
         data = request.json.get("data", [])
-        print(filename, data)
+        logging.info("filename {}, data {}".format(filename, data))
         # 校验参数的正确性
         if filename and isinstance(data, list) and len(data) > 0 and isinstance(data[0], list):
             # 执行csv2graph解析
-            reJson = columns_mapper_entity(filename, data)
-            return Response(json.dumps(reJson), mimetype='application/json')
+            rsJson = columns_mapper_entity(filename, data)
+            rsText = json.dumps(rsJson)
         else:
-            return Response(json.dumps({'code': '201', 'msg': '接口参数异常'}))
+            rsText = json.dumps({'code': '201', 'msg': '接口参数异常'})
+
+        logging.info("csv2graph: {}".format(rsText))
+        return Response(rsText, mimetype='application/json')
 
     return app
 
