@@ -7,8 +7,11 @@
 # @Software: PyCharm
 import pandas as pd
 import collections
+import logging
 import time
 import re
+
+logger = logging.getLogger(__name__)
 
 
 def get_phone_num(txt):
@@ -109,6 +112,7 @@ def title_mapper_entity(title, col2dats):
         typ = collections.Counter(tmp_tpyes).most_common(1)[0]  # 统计每列识别的类型, 选取最多
         col2ent[c_title] = typ[0]  # col -> ent
         ent2cols[typ[0]].add(c_title)  # ent -> cols
+
     return col2ent, ent2cols
 
 
@@ -191,10 +195,10 @@ def columns_mapper_entity(filename, data):
     # 验证数据是否正确
 
     try:
-        # print(zjhm, ent2cols, col2dats)
         assert validate_format(zjhm, ent2cols, col2dats)
     except AssertionError:
         # print("数据格式不正确, 返回文件格式异常错误")
+        logging.warning("数据格式不正确, 返回文件格式异常错误")
         return {'code': 202, 'msg': '话单数据格式异常'}
 
     need_deal_ent = ['sjhm', 'thsj']
