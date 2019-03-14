@@ -79,7 +79,7 @@ def get_ent_type(txt):
     :return:
     """
     if txt is None:
-        return None
+        return "null"
     rules_pool = {
         "sjhm": "((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199|(147))\\d{8}",
         "thsc": "((([1-5][0-9])|[1-9])秒)",
@@ -112,7 +112,6 @@ def title_mapper_entity(title, col2dats):
         typ = collections.Counter(tmp_tpyes).most_common(1)[0]  # 统计每列识别的类型, 选取最多
         col2ent[c_title] = typ[0]  # col -> ent
         ent2cols[typ[0]].add(c_title)  # ent -> cols
-
     return col2ent, ent2cols
 
 
@@ -155,13 +154,13 @@ def columns_mapper_entity(filename, data):
     :return:
         {
             'entities':
-                {'sjhm': {'options': ['手机号码'], 'value': '手机号码'},
-                'thsc': {'options': ['通话时长'], 'value': '通话时长'},
-                'thlx': {'options': ['通话类型'], 'value': '通话类型'},
-                'jzh': {'options': ['基站号'], 'value': '基站号'},
-                'lddw': {'options': ['通话定位'], 'value': '通话定位'},
-                'thkssj': {'options': ['通话开始时间', '通话结束时间'], 'value': '通话开始时间'},
-                'thjssj': {'options': ['通话开始时间', '通话结束时间'], 'value': '通话结束时间'}}
+                {'sjhm': ['手机号码'],
+                'thsc': ['通话时长'],
+                'thlx': ['通话类型'],
+                'jzh': ['基站号'],
+                'lddw': ['通话定位'],
+                'thkssj': ['通话开始时间', '通话结束时间'],
+                'thjssj': ['通话开始时间', '通话结束时间']
                 },
             'origin_titles': [],  ---原始表头, 不存在为空
             'titles': [手机号码','第二列','通话时长','通话类型','基站号','通话开始时间','通话结束时间','通话定位','第九列','第十列'] ---新解析表头
@@ -202,8 +201,8 @@ def columns_mapper_entity(filename, data):
         return {'code': 202, 'msg': '话单数据格式异常'}
 
     need_deal_ent = ['sjhm', 'thsj']
-    entities = [{e: {'value': list(cs)[0], 'options': list(cs)}} for e, cs in ent2cols.items() if
-                len(cs) == 1 and e not in need_deal_ent]
+    entities = {e: list(cs) for e, cs in ent2cols.items() if len(cs) == 1 and e not in need_deal_ent}
+    # print(entities)
     # 处理手机号
     cols_sjhm = list(ent2cols['sjhm'])
     if len(cols_sjhm) == 2:
@@ -212,14 +211,14 @@ def columns_mapper_entity(filename, data):
         col2ent[c1], col2ent[c2] = 'bjhm', 'dfhm'
         ent2cols['bjhm'].add(c1)
         ent2cols['dfhm'].add(c2)
-        entities.append({'bjhm': {'value': c1, 'options': cols_sjhm}})
-        entities.append({'dfhm': {'value': c2, 'options': cols_sjhm}})
+        entities.update({'bjhm': [col1, col2]})
+        entities.update({'dfhm': [col2, col1]})
     else:
         col = cols_sjhm[0]
         col2ent[col] = 'dfhm'
         ent2cols['dfhm'] = col
-        entities.append({'bjhm': {'value': '文件名', 'options': ['文件名']}})
-        entities.append({'dfhm': {'value': col, 'options': cols_sjhm}})
+        entities.update({'bjhm': ['文件名']})
+        entities.update({'dfhm': cols_sjhm})
 
     # 处理通话时间
     cols_thsj = list(ent2cols['thsj'])
@@ -231,43 +230,41 @@ def columns_mapper_entity(filename, data):
             col2ent[col1], col2ent[col2] = 'thkssj', 'thjssj'
             ent2cols['thkssj'].add(col1)
             ent2cols['thjssj'].add(col2)
-            entities.append({'thkssj': {'value': col1, 'options': cols_thsj}})
-            entities.append({'thjssj': {'value': col2, 'options': cols_thsj}})
+            entities.update({'thkssj': [col1, col2]})
+            entities.update({'thjssj': [col2, col1]})
         else:  # None, -1, 0
             col2ent[col2], col2ent[col1] = 'thkssj', 'thjssj'
             ent2cols['thkssj'].add(col2)
             ent2cols['thjssj'].add(col1)
-            entities.append({'thkssj': {'value': col2, 'options': cols_thsj}})
-            entities.append({'thjssj': {'value': col1, 'options': cols_thsj}})
+            entities.update({'thjssj': [col1, col2]})
+            entities.update({'thkssj': [col2, col1]})
     else:
         col = cols_thsj[0]
         ent2cols['thkssj'].add(col)
         ent2cols['thjssj'].add(col)
-        entities.append({'thkssj': {'value': col, 'options': cols_thsj}})
-        entities.append({'thjssj': {'value': col, 'options': cols_thsj}})
+        entities.update({'thkssj': cols_thsj})
+        entities.update({'thjssj': cols_thsj})
 
     # 标准化
     tilte_dict = {}
     # print(col2ent)
     for k, v in col2ent.items():
-        if v is None:
-            continue
         # print(k, v)
         # print(k, v, title_template[v])
-        if v == 'unk':
+        if v == 'unk' or v == 'null':
             tilte_dict[k] = '第%s列' % num2chinese(k + 1)
         else:
             tilte_dict[k] = title_template[v]
-    # print(tilte_dict)
-    for entity in entities:
-        for k, vs in entity.items():
-            # print(k, vs)
-            if vs['value'] in tilte_dict:
-                vs['value'] = tilte_dict[vs['value']]
-                opts = []
-                for o in vs['options']:
-                    opts.append(tilte_dict[o])
-                vs['options'] = opts
+
+    for k, vals in entities.items():
+        opts = []
+        for val in vals:
+            if val in tilte_dict:
+                opts.append(tilte_dict[val])
+            else:
+                opts.append(val)
+        # print(opts)
+        entities[k] = opts
 
     titles = [tilte_dict[t] if t in tilte_dict else "第%s列" % num2chinese(t + 1) for t in titles]
     print("ents", entities, "origin_titles", origin_titles, "titles", titles)
@@ -395,9 +392,9 @@ def date2timestamp(date):
 
 
 if __name__ == '__main__':
-    # filename = "13018866666的话单.csv"
-    # filename = "13018811509的话单.csv"
-    filename = "1话单.csv"
+    filename = "13018866666的话单.csv"
+    filename = "13018811509的话单.csv"
+    # filename = "1话单.csv"
     dat_csv = pd.read_csv(filename, header=None)
     titles = list(dat_csv.columns)
     data = []
