@@ -115,7 +115,7 @@ def title_mapper_entity(title, col2dats):
     return col2ent, ent2cols
 
 
-def validate_format(zjhm, ent2cols, col2dats):
+def validate_format(bjhm, ent2cols, col2dats):
     """验证表单的是否异常
         1、包含两列手机号, 一列时间
         2、文件名吧包含手机号、文件存在一列手机号, 一列时间
@@ -128,7 +128,7 @@ def validate_format(zjhm, ent2cols, col2dats):
     def valid_c2():
         row_key = list(ent2cols['sjhm'])[0]
         col_sjhm_txt = collections.Counter(col2dats[row_key]).most_common(1)[0]
-        if zjhm and zjhm not in col_sjhm_txt[0]:
+        if bjhm and bjhm not in col_sjhm_txt[0]:
             return True
         else:
             return False
@@ -182,7 +182,7 @@ def columns_mapper_entity(filename, data):
         'unk': '未知',
     }
     # 获取主叫号码
-    zjhm = get_phone_num(filename)  # 从文件名提前手机号,可能为None
+    bjhm = get_phone_num(filename)  # 从文件名提前手机号,可能为None
 
     # 转化文件名
     origin_titles, titles, col2dats = convertcol2dats(data)
@@ -194,7 +194,7 @@ def columns_mapper_entity(filename, data):
     # 验证数据是否正确
 
     try:
-        assert validate_format(zjhm, ent2cols, col2dats)
+        assert validate_format(bjhm, ent2cols, col2dats)
     except AssertionError:
         # print("数据格式不正确, 返回文件格式异常错误")
         logging.warning("数据格式不正确, 返回文件格式异常错误")
@@ -205,21 +205,23 @@ def columns_mapper_entity(filename, data):
     # print(entities)
     # 处理手机号
     cols_sjhm = list(ent2cols['sjhm'])
+    fileinfo = {'bjhm': bjhm if bjhm else ""}  # 文件名信息
     if len(cols_sjhm) == 2:
         col1, col2 = cols_sjhm[0], cols_sjhm[1]
-        c1, c2 = subject_object_phone(col1, col2, col2dats, zjhm)
+        c1, c2 = subject_object_phone(col1, col2, col2dats, bjhm)
         col2ent[c1], col2ent[c2] = 'bjhm', 'dfhm'
         ent2cols['bjhm'].add(c1)
         ent2cols['dfhm'].add(c2)
         entities.update({'bjhm': [col1, col2]})
         entities.update({'dfhm': [col2, col1]})
+        fileinfo.update({'isUseed': False})
     else:
         col = cols_sjhm[0]
         col2ent[col] = 'dfhm'
         ent2cols['dfhm'] = col
         entities.update({'bjhm': ['文件名']})
         entities.update({'dfhm': cols_sjhm})
-
+        fileinfo.update({'isUseed': True})
     # 处理通话时间
     cols_thsj = list(ent2cols['thsj'])
     # print("通话时间", cols_thsj)
@@ -272,13 +274,14 @@ def columns_mapper_entity(filename, data):
         'code': 200,
         'data': {
             'entities': entities,
+            'fileinfo': fileinfo,
             'origin_titles': origin_titles,
             'titles': titles
         }
     }
 
 
-def subject_object_phone(col1, col2, col_dat, zjhm):
+def subject_object_phone(col1, col2, col_dat, bjhm):
     """
     判断col1,col2 两列中那个是主叫号码和被叫号码
     :param col1:
@@ -296,9 +299,9 @@ def subject_object_phone(col1, col2, col_dat, zjhm):
     col2_phone, col2_num = collections.Counter(phone_col2s).most_common(1)[0]
     # print(col1, col2)
     # print(col1_num, col2_num)
-    if zjhm:
+    if bjhm:
         """根据文件名来确认本机号码"""
-        if zjhm == col1_phone:
+        if bjhm == col1_phone:
             return col1, col2
         else:
             return col2, col1
@@ -393,7 +396,7 @@ def date2timestamp(date):
 
 if __name__ == '__main__':
     filename = "13018866666的话单.csv"
-    filename = "13018811509的话单.csv"
+    # filename = "13018811509的话单.csv"
     # filename = "1话单.csv"
     dat_csv = pd.read_csv(filename, header=None)
     titles = list(dat_csv.columns)
