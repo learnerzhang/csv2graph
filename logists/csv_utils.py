@@ -109,9 +109,20 @@ def title_mapper_entity(title, col2dats):
             ent_type = get_ent_type(col_txt)  # 获取该txt的实体类型
             tmp_tpyes.append(ent_type)
 
-        typ = collections.Counter(tmp_tpyes).most_common(1)[0]  # 统计每列识别的类型, 选取最多
-        col2ent[c_title] = typ[0]  # col -> ent
-        ent2cols[typ[0]].add(c_title)  # ent -> cols
+        # 需要判断 第二多的列
+        typ = collections.Counter(tmp_tpyes).most_common(2)  # 统计每列识别的类型, 选取最多
+        if len(typ) > 1:
+            typ0, num0 = typ[0][0], typ[0][1]
+            typ1, num1 = typ[1][0], typ[1][1]
+            # TODO compare the nums
+            if typ0 == 'unk':
+                _typ = typ1
+            else:
+                _typ = typ0
+        else:
+            _typ = typ[0][0]
+        col2ent[c_title] = _typ  # col -> ent
+        ent2cols[_typ].add(c_title)  # ent -> cols
     return col2ent, ent2cols
 
 
