@@ -29,7 +29,7 @@ def get_phone_num(txt):
     return None
 
 
-def convertcol2dats(data):
+def convertcol2dats(data, titleRegStr):
     """
     转化数据格式
     :param data:
@@ -42,7 +42,7 @@ def convertcol2dats(data):
     """
     col2dats = collections.defaultdict(list)
     # 取第一行做表头判断
-    valid_head = collections.Counter([containsTitleKey(d) for d in data[0] if d]).most_common(1)[0]
+    valid_head = collections.Counter([containsTitleKey(d, titleRegStr) for d in data[0] if d]).most_common(1)[0]
     # print(valid_head)
     if isinstance(valid_head[0], bool):
         origin_titles = data[0]
@@ -57,13 +57,13 @@ def convertcol2dats(data):
     return origin_titles, titles, col2dats
 
 
-def containsTitleKey(txt):
+def containsTitleKey(txt, regStr):
     """
     判断是否为表头
     :param txt:
     :return:
     """
-    keyword_pattern = re.compile("(时间|号码|定位|类型)")
+    keyword_pattern = re.compile(regStr)
     tartget = keyword_pattern.search(txt)
     if tartget:
         return True
@@ -196,7 +196,7 @@ def columns_mapper_entity(filename, data):
     bjhm = get_phone_num(filename)  # 从文件名提前手机号,可能为None
 
     # 转化文件名
-    origin_titles, titles, col2dats = convertcol2dats(data)
+    origin_titles, titles, col2dats = convertcol2dats(data, titleRegStr="(时间|号码|定位|类型)")
     # print(col2dats)
     # # col -> ent # ent -> cols
     col2ent, ent2cols = title_mapper_entity(titles, col2dats)
@@ -214,7 +214,8 @@ def columns_mapper_entity(filename, data):
     need_deal_ent = ['sjhm', 'thsj']
     entities = {e: list(cs) for e, cs in ent2cols.items() if len(cs) == 1 and e not in need_deal_ent}
     # print(entities)
-    # 处理手机号
+
+    # Step 0 处理手机号
     cols_sjhm = list(ent2cols['sjhm'])
     fileinfo = {'bjhm': bjhm if bjhm else ""}  # 文件名信息
     if len(cols_sjhm) == 2:
@@ -233,7 +234,8 @@ def columns_mapper_entity(filename, data):
         entities.update({'bjhm': ['文件名']})
         entities.update({'dfhm': cols_sjhm})
         fileinfo.update({'isUseed': True})
-    # 处理通话时间
+
+    # Step 1 处理通话时间
     cols_thsj = list(ent2cols['thsj'])
     # print("通话时间", cols_thsj)
     if len(cols_thsj) == 2:
@@ -258,6 +260,16 @@ def columns_mapper_entity(filename, data):
         entities.update({'thkssj': cols_thsj})
         entities.update({'thjssj': cols_thsj})
 
+    # Step 3 基站号
+    if len(ent2cols['jzh']) == 0 and origin_titles:
+        for i, title in enumerate(origin_titles):
+            if isinstance(containsTitleKey(title, regStr="(基站)"), bool):
+                ent2cols['jzh'].add(i)
+                col2ent[i] = title
+                titles[i] = title
+                entities.update({'jzh': [title]})
+
+
     # 标准化
     tilte_dict = {}
     # print(col2ent)
@@ -266,7 +278,7 @@ def columns_mapper_entity(filename, data):
         # print(k, v, title_template[v])
         if v == 'unk' or v == 'null':
             tilte_dict[k] = '第%s列' % num2chinese(k + 1)
-        else:
+        elif v in title_template:
             tilte_dict[k] = title_template[v]
 
     for k, vals in entities.items():
@@ -279,15 +291,23 @@ def columns_mapper_entity(filename, data):
         # print(opts)
         entities[k] = opts
 
-    titles = [tilte_dict[t] if t in tilte_dict else "第%s列" % num2chinese(t + 1) for t in titles]
-    print("ents", entities, "origin_titles", origin_titles, "titles", titles)
+    _titles = []
+    for t in titles:
+        if t in tilte_dict:
+            _titles.append(tilte_dict[t])
+        elif isinstance(t, int):
+            _titles.append("第%s列" % num2chinese(t + 1))
+        else:
+            _titles.append(t)
+
+    print("ents", entities, "origin_titles", origin_titles, "titles", _titles)
     return {
         'code': 200,
         'data': {
             'entities': entities,
             'fileinfo': fileinfo,
             'origin_titles': origin_titles,
-            'titles': titles
+            'titles': _titles
         }
     }
 
@@ -408,8 +428,9 @@ def date2timestamp(date):
 if __name__ == '__main__':
     filename = "13018866666的话单.csv"
     # filename = "13018811509的话单.csv"
-    # filename = "1话单.csv"
+    # filename = "demo.xls"
     dat_csv = pd.read_csv(filename, header=None)
+    # dat_csv = pd.read_excel(filename, header=None)
     titles = list(dat_csv.columns)
     data = []
     for i, r in dat_csv.iterrows():
