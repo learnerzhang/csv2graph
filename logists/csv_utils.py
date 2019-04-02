@@ -7,6 +7,7 @@
 # @Software: PyCharm
 import pandas as pd
 import collections
+import pprint
 import logging
 import time
 import re
@@ -83,10 +84,11 @@ def get_ent_type(txt):
     rules_pool = {
         "sjhm": "((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199|(147))\\d{8}",
         "thsc": "((([1-5][0-9])|[1-9])秒)",
-        "thlx": "(主叫|短信)",
+        "hjlx": "(主叫|被叫)",
+        "thlx": "(本地通话|国内长途)",
         "jzh": "(SAIE)",
         "thsj": "(([0-1][0-9]|(2[0-4])):([0-5][0-9]):([0-5][0-9]))",
-        "lddw": "(黑龙江|吉林|辽宁|江苏|山东|安徽|河北|河南|湖北|湖南|江西|陕西|山西|四川|青海|海南|广东|贵州|浙江|福建|台湾|甘肃|云南|内蒙古|宁夏|新疆|西藏|广西|北京|上海|天津|重庆|香港|澳门)"
+        "dw": "(黑龙江|吉林|辽宁|江苏|山东|安徽|河北|河南|湖北|湖南|江西|陕西|山西|四川|青海|海南|广东|贵州|浙江|福建|台湾|甘肃|云南|内蒙古|宁夏|新疆|西藏|广西|北京|上海|天津|重庆|香港|澳门)"
     }
     # 匹配手机号
 
@@ -183,13 +185,21 @@ def columns_mapper_entity(filename, data):
         'bjhm': '本机号码',
         'dfhm': '对方号码',
         'thlx': '通话类型',
+        'hjlx': '呼叫类型',
         'thsc': '通话时长',
         'thsj': '通话时间',
         'sj': '时间',
         'thkssj': '通话开始时间',
         'thjssj': '通话结束时间',
-        'lddw': '通话定位',
+        'dw': '定位',
+        'dfgsd': '对方归属地',
+        'thd': '通话地',
         'jzh': '基站号',
+        'fwh': '蜂窝号',
+        'thddqh': '通话地点区号',
+        'dfimsi': '对方IMSI',
+        'bjimsi': '本机IMSI',
+        'bjimei': '本机IMEI',
         'unk': '未知',
     }
     # 获取主叫号码
@@ -213,7 +223,7 @@ def columns_mapper_entity(filename, data):
 
     need_deal_ent = ['sjhm', 'thsj']
     entities = {e: list(cs) for e, cs in ent2cols.items() if len(cs) == 1 and e not in need_deal_ent}
-
+    print("one > ", entities)
     # Step 0 处理手机号
     cols_sjhm = list(ent2cols['sjhm'])
     fileinfo = {'本机号码': bjhm if bjhm else ""}  # 文件名信息
@@ -259,14 +269,42 @@ def columns_mapper_entity(filename, data):
         entities.update({'thkssj': cols_thsj})
         entities.update({'thjssj': cols_thsj})
 
+    # step 1 处理位置
+    cols_dw = list(ent2cols['dw'])
+    if len(cols_dw) == 2:
+        col1, col2 = cols_dw[0], cols_dw[1]
+        rs = compare_dw(col1, col2, col2dats)
+        if rs == 1:
+            col2ent[col1], col2ent[col2] = 'thd', 'dfgsd'
+            ent2cols['thd'].add(col1)
+            ent2cols['dfgsd'].add(col2)
+            entities.update({'thd': [col1, col2]})
+            entities.update({'dfgsd': [col2, col1]})
+        else:  # None, -1, 0
+            col2ent[col2], col2ent[col1] = 'thd', 'dfgsd'
+            ent2cols['thd'].add(col2)
+            ent2cols['dfgsd'].add(col1)
+            entities.update({'dfgsd': [col1, col2]})
+            entities.update({'thd': [col2, col1]})
+    else:
+        col = cols_dw[0]
+        ent2cols['thd'].add(col)
+        ent2cols['dfgsd'].add(col)
+        entities.update({'thd': cols_dw})
+        entities.update({'dfgsd': cols_dw})
+
     # Step 3 基站号
-    if len(ent2cols['jzh']) == 0 and origin_titles:
-        for i, title in enumerate(origin_titles):
-            if isinstance(containsTitleKey(title, regStr="(基站)"), bool):
-                ent2cols['jzh'].add(i)
-                col2ent[i] = title
-                titles[i] = title
-                entities.update({'jzh': [title]})
+    fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'jzh', "(基站)")
+    # Step 4 蜂窝号
+    fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'fwh', "(蜂窝)")
+    # Step 5 通话地点区号
+    fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'thddqh', "(通话地点|地点区号)")
+    # Step 6 本机IMEI
+    fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'bjimei', "(IMEI)")
+    # Step 7 本机IMSI
+    fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'bjimsi', "(本机IMSI)")
+    # Step 8 对方IMSI
+    fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'dfimsi', "(对方IMSI)")
 
     # 标准化
     tilte_dict = {}
@@ -279,19 +317,20 @@ def columns_mapper_entity(filename, data):
         elif v in title_template:
             tilte_dict[k] = title_template[v]
 
+    print(entities)
     # print(tilte_dict)
-    for k, vals in entities.items():
-        opts = []
-        for val in vals:
-            if val in tilte_dict:
-                opts.append(tilte_dict[val])
-            else:
-                opts.append(val)
-        # print(opts)
-        entities[k] = opts
+    # for k, vals in entities.items():
+    #     opts = []
+    #     for val in vals:
+    #         if val in tilte_dict:
+    #             opts.append(tilte_dict[val])
+    #         else:
+    #             opts.append(val)
+    #     # print(opts)
+    #     entities[k] = opts
 
     # 返回新定义格式
-    _entities = {title_template[k]:v  for k, v in entities.items()}
+    _entities = {title_template[k]: v for k, v in entities.items()}
 
     _titles = []
     for t in titles:
@@ -312,6 +351,16 @@ def columns_mapper_entity(filename, data):
             'titles': _titles
         }
     }
+
+
+def fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, key, regStr):
+    if len(ent2cols[key]) == 0 and origin_titles:
+        for i, title in enumerate(origin_titles):
+            if isinstance(containsTitleKey(title, regStr=regStr), bool):
+                ent2cols[key].add(i)
+                col2ent[i] = title
+                titles[i] = title
+                entities.update({key: [i]})
 
 
 def subject_object_phone(col1, col2, col_dat, bjhm):
@@ -414,6 +463,28 @@ def compare_time(col1, col2, col_dat, specific_row=None):
         return collections.Counter(rs).most_common(1)[0][0]
 
 
+def compare_dw(col1, col2, col_dat):
+    """
+    对比定位信息, 如果出现地理位置数量比较多,则为对方归属地, 否则为通话的
+    specific_row: 是否具体制定某一行
+    :param col1:
+    :param col2:
+    :param col_dat:
+    :param specific_row:
+    :return:
+    """
+    dw_col1s = []
+    dw_col2s = []
+    for e1, e2 in zip(col_dat[col1], col_dat[col2]):
+        dw_col1s.append(e1)
+        dw_col2s.append(e2)
+
+    if len(collections.Counter(dw_col1s)) < len(collections.Counter(dw_col2s)):
+        return 1
+    else:
+        return -1
+
+
 def date2timestamp(date):
     # type: (Text) -> Float
     # 格式化时间
@@ -428,11 +499,12 @@ def date2timestamp(date):
 
 
 if __name__ == '__main__':
-    filename = "13018866666的话单.csv"
+    filename = "13035885069(话单数据).xls"
+    # filename = "13018866666的话单.csv"
     # filename = "13018811509的话单.csv"
-    # filename = "demo.xls"
-    dat_csv = pd.read_csv(filename, header=None)
-    # dat_csv = pd.read_excel(filename, header=None)
+    filename = "demo.xls"
+    # dat_csv = pd.read_csv(filename, header=None)
+    dat_csv = pd.read_excel(filename, header=None)
     titles = list(dat_csv.columns)
     data = []
     for i, r in dat_csv.iterrows():
@@ -444,4 +516,4 @@ if __name__ == '__main__':
                 row.append(None)
         data.append(row)
     rs = columns_mapper_entity(filename, data)
-    print(rs)
+    pprint.pprint(rs)
