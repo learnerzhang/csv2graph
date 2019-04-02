@@ -1,4 +1,4 @@
 {
   "test.py": true,
-  "test.py::test_post_api1": true
+  "test.py::test_post_api": true
 }

@@ -286,7 +286,7 @@ def columns_mapper_entity(filename, data):
             ent2cols['dfgsd'].add(col1)
             entities.update({'dfgsd': [col1, col2]})
             entities.update({'thd': [col2, col1]})
-    else:
+    elif len(cols_dw) == 1:
         col = cols_dw[0]
         ent2cols['thd'].add(col)
         ent2cols['dfgsd'].add(col)

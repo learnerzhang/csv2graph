@@ -56,8 +56,9 @@ def test_post_api2():
             ['15522453452', '2018-08-21 12:32:21', '', '短信', '1分42秒']],
     }
     res = requests.post(url, json=postData)
-    rsJson = json.loads(res.text)
-    print(rsJson)
+    print(res.text)
+    # rsJson = json.loads(res.text)
+    # print(rsJson)
 
 
 def test_exec_file():
