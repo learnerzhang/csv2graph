@@ -216,7 +216,7 @@ def columns_mapper_entity(filename, data):
 
     # Step 0 处理手机号
     cols_sjhm = list(ent2cols['sjhm'])
-    fileinfo = {'bjhm': bjhm if bjhm else ""}  # 文件名信息
+    fileinfo = {'本机号码': bjhm if bjhm else ""}  # 文件名信息
     if len(cols_sjhm) == 2:
         col1, col2 = cols_sjhm[0], cols_sjhm[1]
         c1, c2 = subject_object_phone(col1, col2, col2dats, bjhm)
