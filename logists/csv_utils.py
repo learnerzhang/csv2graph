@@ -213,7 +213,6 @@ def columns_mapper_entity(filename, data):
 
     need_deal_ent = ['sjhm', 'thsj']
     entities = {e: list(cs) for e, cs in ent2cols.items() if len(cs) == 1 and e not in need_deal_ent}
-    # print(entities)
 
     # Step 0 处理手机号
     cols_sjhm = list(ent2cols['sjhm'])
@@ -269,7 +268,6 @@ def columns_mapper_entity(filename, data):
                 titles[i] = title
                 entities.update({'jzh': [title]})
 
-
     # 标准化
     tilte_dict = {}
     # print(col2ent)
@@ -281,6 +279,7 @@ def columns_mapper_entity(filename, data):
         elif v in title_template:
             tilte_dict[k] = title_template[v]
 
+    # print(tilte_dict)
     for k, vals in entities.items():
         opts = []
         for val in vals:
@@ -291,6 +290,9 @@ def columns_mapper_entity(filename, data):
         # print(opts)
         entities[k] = opts
 
+    # 返回新定义格式
+    _entities = {title_template[k]:v  for k, v in entities.items()}
+
     _titles = []
     for t in titles:
         if t in tilte_dict:
@@ -300,11 +302,11 @@ def columns_mapper_entity(filename, data):
         else:
             _titles.append(t)
 
-    print("ents", entities, "origin_titles", origin_titles, "titles", _titles)
+    logging.info("[*] entities:{}| origin_titles:{}| title:{}".format(_entities, origin_titles, _titles))
     return {
         'code': 200,
         'data': {
-            'entities': entities,
+            'entities': _entities,
             'fileinfo': fileinfo,
             'origin_titles': origin_titles,
             'titles': _titles
