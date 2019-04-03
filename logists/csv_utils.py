@@ -235,14 +235,14 @@ def columns_mapper_entity(filename, data):
         ent2cols['dfhm'].add(c2)
         entities.update({'bjhm': [col1, col2]})
         entities.update({'dfhm': [col2, col1]})
-        fileinfo.update({'isUseed': False})
+        # fileinfo.update({'isUseed': False})
     else:
         col = cols_sjhm[0]
         col2ent[col] = 'dfhm'
         ent2cols['dfhm'] = col
-        entities.update({'bjhm': ['文件名']})
+        # entities.update({'bjhm': ['文件名']})
         entities.update({'dfhm': cols_sjhm})
-        fileinfo.update({'isUseed': True})
+        # fileinfo.update({'isUseed': True})
 
     # Step 1 处理通话时间
     cols_thsj = list(ent2cols['thsj'])
@@ -499,12 +499,12 @@ def date2timestamp(date):
 
 
 if __name__ == '__main__':
-    filename = "13035885069(话单数据).xls"
+    # filename = "13035885069(话单数据).xls"
     # filename = "13018866666的话单.csv"
-    # filename = "13018811509的话单.csv"
-    filename = "demo.xls"
-    # dat_csv = pd.read_csv(filename, header=None)
-    dat_csv = pd.read_excel(filename, header=None)
+    filename = "13018811509的话单.csv"
+    # filename = "demo.xls"
+    dat_csv = pd.read_csv(filename, header=None)
+    # dat_csv = pd.read_excel(filename, header=None)
     titles = list(dat_csv.columns)
     data = []
     for i, r in dat_csv.iterrows():

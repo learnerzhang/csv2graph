@@ -33,7 +33,7 @@ def test_post_api():
 
 
 def test_post_api1():
-    url = 'http://127.0.0.1:1234/litemind/csv2graph'
+    url = 'http://d65.mlamp.cn:1234/litemind/csv2graph'
     postData = {
         "filename": '18518067686的话单.csv',
         "data": [
