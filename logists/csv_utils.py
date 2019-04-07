@@ -117,7 +117,7 @@ def title_mapper_entity(title, col2dats):
             typ0, num0 = typ[0][0], typ[0][1]
             typ1, num1 = typ[1][0], typ[1][1]
             # TODO compare the nums
-            if typ0 == 'unk':
+            if typ0 == 'null' or typ0 == 'unk':
                 _typ = typ1
             else:
                 _typ = typ0
@@ -146,10 +146,24 @@ def validate_format(bjhm, ent2cols, col2dats):
         else:
             return False
 
-    if 'sjhm' in ent2cols and 'thsj' in ent2cols and len(ent2cols['thsj']) >= 1:
-        if valid_c1() or valid_c2():
-            return True
-    return False
+    if 'thsj' in ent2cols:
+        try:
+            assert len(ent2cols['thsj']) >= 1, "通话时间字段错误"
+        except AssertionError:
+            return False, "缺少通话时间字段"
+    else:
+        logging.warning("数据格式不正确, 通话字段错误")
+        return False, "未发现通话时间字段"
+
+    if 'sjhm' in ent2cols:
+        try:
+            assert valid_c1() or valid_c2(), "手机号码字段错误"
+        except AssertionError:
+            return False, "缺少手机号码字段"
+    else:
+        logging.warning("数据格式不正确, 手机号码字段错误")
+        return False, "未发现手机号码字段"
+    return True, ""
 
 
 def columns_mapper_entity(filename, data):
@@ -213,13 +227,10 @@ def columns_mapper_entity(filename, data):
     # print(col2ent)
     # print(ent2cols)
     # 验证数据是否正确
-
-    try:
-        assert validate_format(bjhm, ent2cols, col2dats)
-    except AssertionError:
-        # print("数据格式不正确, 返回文件格式异常错误")
+    flag, msg = validate_format(bjhm, ent2cols, col2dats)
+    if not flag:
         logging.warning("数据格式不正确, 返回文件格式异常错误")
-        return {'code': 202, 'msg': '话单数据格式异常'}
+        return {'code': 202, 'msg': msg}
 
     need_deal_ent = ['sjhm', 'thsj']
     entities = {e: list(cs) for e, cs in ent2cols.items() if len(cs) == 1 and e not in need_deal_ent}
@@ -317,7 +328,7 @@ def columns_mapper_entity(filename, data):
         elif v in title_template:
             tilte_dict[k] = title_template[v]
 
-    print(entities)
+    # print(entities)
     # print(tilte_dict)
     # for k, vals in entities.items():
     #     opts = []
@@ -330,6 +341,7 @@ def columns_mapper_entity(filename, data):
     #     entities[k] = opts
 
     # 返回新定义格式
+    # print("==>", entities)
     _entities = {title_template[k]: v for k, v in entities.items()}
 
     _titles = []
@@ -501,10 +513,11 @@ def date2timestamp(date):
 if __name__ == '__main__':
     # filename = "13035885069(话单数据).xls"
     # filename = "13018866666的话单.csv"
-    filename = "13018811509的话单.csv"
-    # filename = "demo.xls"
-    dat_csv = pd.read_csv(filename, header=None)
-    # dat_csv = pd.read_excel(filename, header=None)
+    # filename = "13018866666的话单.csv"
+    # filename = "./data/本机与对方号码都有.xlsx"
+    filename = "./data/13567488934标准的移动通话详单(1).xlsx"
+    # dat_csv = pd.read_csv(filename, header=None)
+    dat_csv = pd.read_excel(filename, header=None)
     titles = list(dat_csv.columns)
     data = []
     for i, r in dat_csv.iterrows():
