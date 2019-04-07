@@ -87,7 +87,7 @@ def get_ent_type(txt):
         "hjlx": "(主叫|被叫)",
         "thlx": "(本地通话|国内长途)",
         "jzh": "(SAIE)",
-        "thsj": "(([0-1][0-9]|(2[0-4])):([0-5][0-9]):([0-5][0-9]))",
+        "thsj": "(([0-1][0-9]|(2[0-4])):([0-5][0-9]):([0-5][0-9])|(\d{4}-\d{2}-\d{2})|(\d{4}\\d{2}\\d{2}))",
         "dw": "(黑龙江|吉林|辽宁|江苏|山东|安徽|河北|河南|湖北|湖南|江西|陕西|山西|四川|青海|海南|广东|贵州|浙江|福建|台湾|甘肃|云南|内蒙古|宁夏|新疆|西藏|广西|北京|上海|天津|重庆|香港|澳门)"
     }
     # 匹配手机号
@@ -514,8 +514,8 @@ if __name__ == '__main__':
     # filename = "13035885069(话单数据).xls"
     # filename = "13018866666的话单.csv"
     # filename = "13018866666的话单.csv"
-    # filename = "./data/本机与对方号码都有.xlsx"
-    filename = "./data/13567488934标准的移动通话详单(1).xlsx"
+    filename = "./data/本机与对方号码都有.xlsx"
+    # filename = "./data/13567488934标准的移动通话详单(1).xlsx"
     # dat_csv = pd.read_csv(filename, header=None)
     dat_csv = pd.read_excel(filename, header=None)
     titles = list(dat_csv.columns)
