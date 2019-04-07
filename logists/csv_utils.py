@@ -22,7 +22,7 @@ def get_phone_num(txt):
     :param txt:
     :return:
     """
-    re_str = "((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199|(147))\\d{8}"
+    re_str = "(((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199|(147))\\d{8}|(\d{3,5}(-|\s)?)?\d{6,8})"
     pattern = re.compile(re_str)
     target = list(pattern.finditer(txt))
     if target:
@@ -64,6 +64,8 @@ def containsTitleKey(txt, regStr):
     :param txt:
     :return:
     """
+    if txt is None:
+        return None
     keyword_pattern = re.compile(regStr)
     tartget = keyword_pattern.search(txt)
     if tartget:
@@ -82,7 +84,8 @@ def get_ent_type(txt):
     if txt is None:
         return "null"
     rules_pool = {
-        "sjhm": "((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199|(147))\\d{8}",
+
+        "sjhm": "(((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199|(147))\\d{8}|(\d{3,5}(-|\s)?)?\d{6,8})",
         "thsc": "((([1-5][0-9])|[1-9])秒)",
         "hjlx": "(主叫|被叫)",
         "thlx": "(本地通话|国内长途)",
@@ -368,7 +371,7 @@ def columns_mapper_entity(filename, data):
 def fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, key, regStr):
     if len(ent2cols[key]) == 0 and origin_titles:
         for i, title in enumerate(origin_titles):
-            if isinstance(containsTitleKey(title, regStr=regStr), bool):
+            if isinstance(containsTitleKey(title, regStr=str(regStr)), bool):
                 ent2cols[key].add(i)
                 col2ent[i] = title
                 titles[i] = title
@@ -513,8 +516,8 @@ def date2timestamp(date):
 if __name__ == '__main__':
     # filename = "13035885069(话单数据).xls"
     # filename = "13018866666的话单.csv"
-    # filename = "13018866666的话单.csv"
-    filename = "./data/本机与对方号码都有.xlsx"
+    # filename = "./data/13018866666的话单.csv"
+    filename = "./data/本机与对方号码都有2.xlsx"
     # filename = "./data/13567488934标准的移动通话详单(1).xlsx"
     # dat_csv = pd.read_csv(filename, header=None)
     dat_csv = pd.read_excel(filename, header=None)

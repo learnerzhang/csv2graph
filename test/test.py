@@ -64,8 +64,8 @@ def test_post_api2():
 def test_post_api3():
     url = 'http://d65.mlamp.cn:1234/litemind/csv2graph'
 
-    filename = "../data/13567488934标准的移动通话详单(1).xlsx"
-    filename = "../data/本机与对方号码都有.xlsx"
+    # filename = "../data/13567488934标准的移动通话详单(1).xlsx"
+    filename = "../data/本机与对方号码都有2.xlsx"
     dat_csv = pd.read_excel(filename, header=None)
     titles = list(dat_csv.columns)
     data = []
@@ -86,9 +86,9 @@ def test_post_api3():
     }
 
     res = requests.post(url, json=postData)
-    print(res.text)
-    # rsJson = json.loads(res.text)
-    # print(rsJson)
+    # print(res.text)
+    rsJson = json.loads(res.text)
+    print(rsJson)
 
 
 def test_exec_file():
