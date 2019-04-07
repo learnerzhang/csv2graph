@@ -319,6 +319,8 @@ def columns_mapper_entity(filename, data):
     fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'bjimsi', "(本机IMSI)")
     # Step 8 对方IMSI
     fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'dfimsi', "(对方IMSI)")
+    # Step 9 通话时长
+    fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'thsc', "(时长)")
 
     # 标准化
     tilte_dict = {}
