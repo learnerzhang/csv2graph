@@ -1,2 +1,4 @@
 pandas==0.23.4
 coloredlogs==10.0
+Flask==1.0.2
+gevent==1.4.0

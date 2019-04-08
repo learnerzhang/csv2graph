@@ -85,7 +85,7 @@ def configure_file_logging(loglevel, logfile):
 def create_app(parse_args):
     """Class representing a HTTP server."""
     loglevel = parse_args.loglevel if hasattr(parse_args, "loglevel") else "INFO"
-    logfile = parse_args.loglevel if hasattr(parse_args, "logfile") else "csv2graph.log"
+    logfile = parse_args.loglevel if hasattr(parse_args, "logfile") else "logs/csv2graph.log"
     configure_file_logging(loglevel, logfile)
 
     app = Flask(__name__)

@@ -1,4 +1,5 @@
-FROM 172.17.1.119:5555/litemind/acai_service:0.1
+#FROM 172.17.1.119:5555/litemind/acai_service:0.1
+FROM python:3.6
 
 RUN rm -rf  /etc/localtime && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 

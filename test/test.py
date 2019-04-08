@@ -62,7 +62,7 @@ def test_post_api2():
 
 
 def test_post_api3():
-    url = 'http://d65.mlamp.cn:1234/litemind/csv2graph'
+    url = 'http://d65.mlamp.cn:2234/litemind/csv2graph'
 
     filename = "../data/demo.xls"
     filename = "../data/2018年9月份话单(1).xls"
@@ -70,10 +70,10 @@ def test_post_api3():
     filename = "../data/13035885069.xls"
     # filename = "13018866666的话单.csv"
     # filename = "./data/13018866666的话单.csv"
-    # filename = "./data/本机与对方号码都有2.xlsx"
-    # filename = "../data/18435109165.xls"
-    # filename = "../data/13567488934标准的移动通话详单(1).xlsx"
     filename = "../data/本机与对方号码都有2.xlsx"
+    filename = "../data/18435109165.xls"
+    # filename = "../data/13567488934标准的移动通话详单(1).xlsx"
+    # filename = "../data/本机与对方号码都有2.xlsx"
     dat_csv = pd.read_excel(filename, header=None)
     titles = list(dat_csv.columns)
     data = []
