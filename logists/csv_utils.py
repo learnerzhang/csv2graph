@@ -90,7 +90,7 @@ def get_ent_type(txt):
         "hjlx": "(主叫|被叫)",
         "thlx": "(本地通话|国内长途)",
         "jzh": "(SAIE)",
-        "thsj": "^(\d{4}[-/]\d{1,2}[-/]\d{1,2}(\s{1,2}\d{2}:\d{2}:\d{2})?|(\d{2}:\d{2}:\d{2}))$",  # 日期 时间
+        "thsj": "^((\d{4}[-/])?\d{1,2}[-/]\d{1,2}(\s{1,2}\d{2}:\d{2}:\d{2})?|(\d{2}:\d{2}:\d{2}))$",  # 日期 时间
         "dw": "(黑龙江|吉林|辽宁|江苏|山东|安徽|河北|河南|湖北|湖南|江西|陕西|山西|四川|青海|海南|广东|贵州|浙江|福建|台湾|甘肃|云南|内蒙古|宁夏|新疆|西藏|广西|北京|上海|天津|重庆|香港|澳门)"
     }
     # 匹配手机号
@@ -519,13 +519,15 @@ def date2timestamp(date):
 
 
 if __name__ == '__main__':
-    # filename = "13035885069(话单数据).xls"
+    filename = "./data/13035885069(话单数据).xls"
     # filename = "13018866666的话单.csv"
     # filename = "./data/13018866666的话单.csv"
     filename = "./data/本机与对方号码都有2.xlsx"
-    # filename = "./data/18435109165.xls"
+    filename = "./data/18435109165.xls"
     # filename = "./data/2018年9月份话单(1).xls"
     filename = "./data/13567488934标准的移动通话详单(1).xlsx"
+    filename = "./data/13035885069.xls"
+
     # dat_csv = pd.read_csv(filename, header=None)
     dat_csv = pd.read_excel(filename, header=None)
     titles = list(dat_csv.columns)
