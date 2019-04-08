@@ -62,7 +62,7 @@ def test_post_api2():
 
 
 def test_post_api3():
-    url = 'http://d65.mlamp.cn:2234/litemind/csv2graph'
+    url = 'http://d65.mlamp.cn:1234/litemind/csv2graph'
 
     filename = "../data/demo.xls"
     filename = "../data/2018年9月份话单(1).xls"

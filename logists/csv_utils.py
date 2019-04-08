@@ -68,7 +68,7 @@ def containsTitleKey(txt, regStr):
     """
     if txt is None:
         return None
-    keyword_pattern = re.compile(regStr)
+    keyword_pattern = re.compile(regStr, re.I)
     tartget = keyword_pattern.search(txt)
     if tartget:
         return True
@@ -201,14 +201,14 @@ def columns_mapper_entity(filename, data):
             'titles': [手机号码','第二列','通话时长','通话类型','基站号','通话开始时间','通话结束时间','通话定位','第九列','第十列'] ---新解析表头
         }
     """
-
+    logging.info("filename: {}, data: {}".format(filename, data))
     title_template = {
         'sjhm': '手机号码',
         'bjhm': '本机号码',
         'dfhm': '对方号码',
         'thlx': '通话类型',
         'hjlx': '呼叫类型',
-        'thsc': '通话时长',
+        'thsc': '通话时长（秒）',
         'thsj': '通话时间',
         'sj': '时间',
         'thkssj': '通话开始时间',
@@ -313,22 +313,20 @@ def columns_mapper_entity(filename, data):
         entities.update({'thd': cols_dw})
         entities.update({'dfgsd': cols_dw})
 
-    # Step 3 基站号
+    # Step 基站号
     fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'jzh', "(基站)")
-    # Step 4 蜂窝号
+    # Step 蜂窝号
     fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'fwh', "(蜂窝)")
-    # Step 5 通话地点区号
+    # Step 通话地点区号
     fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'thddqh', "(通话地点|地点区号)")
-    # Step 6 本机IMEI
+    # Step 本机IMEI
     fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'bjimei', "(IMEI)")
-    # Step 7 本机IMSI
-    fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'bjimsi', "(本机IMSI)")
-    # Step 8 对方IMSI
-    fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'dfimsi', "(对方IMSI)")
-    # Step 9 通话时长
+    # Step 通话时长
     fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'thsc', "(时长)")
-    # Step 10 小区
+    # Step 小区
     fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'xq', "(小区)")
+    # Step IMSI
+    fill_imsi(col2dats, ent2cols, col2ent, titles, origin_titles, entities, "(IMSI)")
 
     # 标准化
     tilte_dict = {}
@@ -356,7 +354,6 @@ def columns_mapper_entity(filename, data):
     # 返回新定义格式
     # print("==>", entities)
     _entities = {title_template[k]: v for k, v in entities.items()}
-
     _titles = []
     for t in titles:
         if t in tilte_dict:
@@ -370,6 +367,11 @@ def columns_mapper_entity(filename, data):
 
     logging.info("[*] entities:{}| origin_titles:{}| title:{}".format(_entities, origin_titles, _titles))
     entities = {k: _entities[k] if k in _entities else [] for k in emulators}
+
+    ### 无用内容
+    # if not entities['本机号码']:
+    #     del entities['本机号码']
+
     return {
         'code': 200,
         'data': {
@@ -389,6 +391,44 @@ def fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, key, re
                 col2ent[i] = title
                 titles[i] = title
                 entities.update({key: [i]})
+
+
+def fill_imsi(col_dat, ent2cols, col2ent, titles, origin_titles, entities, regStr="(IMSI)"):
+    if origin_titles:
+        tmp = []
+        for i, title in enumerate(origin_titles):
+            if isinstance(containsTitleKey(title, regStr=str(regStr)), bool):
+                tmp.append((i, title))
+        if len(tmp) == 1:
+            i, title = tmp[0]
+            titles[i] = title
+            ent2cols['bjimsi'].add(i)
+            ent2cols['dfimsi'].add(i)
+            entities.update({'bjimsi': [i]})
+            entities.update({'dfimsi': [i]})
+        elif len(tmp) == 2:
+            (col1, t1), (col2, t2) = tmp[0], tmp[1]
+            imsi_col1s = []
+            imsi_col2s = []
+            for e1, e2 in zip(col_dat[col1], col_dat[col2]):
+                imsi_col1s.append(e1)
+                imsi_col2s.append(e2)
+            if len(collections.Counter(imsi_col1s)) < len(collections.Counter(imsi_col2s)):
+                titles[col1] = t1
+                ent2cols['bjimsi'].add(col1)
+                entities.update({'bjimsi': [col1, col2]})
+
+                titles[col2] = t2
+                ent2cols['dfimsi'].add(col2)
+                entities.update({'dfimsi': [col2, col1]})
+            else:
+                titles[col1] = t2
+                ent2cols['bjimsi'].add(col2)
+                entities.update({'bjimsi': [col2, col1]})
+
+                titles[col2] = t1
+                ent2cols['dfimsi'].add(col1)
+                entities.update({'dfimsi': [col1, col2]})
 
 
 def subject_object_phone(col1, col2, col_dat, bjhm):
@@ -532,9 +572,11 @@ if __name__ == '__main__':
     # filename = "./data/13018866666的话单.csv"
     filename = "./data/本机与对方号码都有2.xlsx"
     filename = "./data/18435109165.xls"
-    # filename = "./data/2018年9月份话单(1).xls"
+    filename = "./data/2018年9月份话单(1).xls"
     filename = "./data/13567488934标准的移动通话详单(1).xlsx"
     filename = "./data/13035885069.xls"
+    filename = "./data/话单数据.xlsx"
+    # filename = "./data/demo.xls"
 
     # dat_csv = pd.read_csv(filename, header=None)
     dat_csv = pd.read_excel(filename, header=None)
