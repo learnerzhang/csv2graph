@@ -12,6 +12,8 @@ import logging
 import time
 import re
 
+from logists import emulators
+
 logger = logging.getLogger(__name__)
 
 
@@ -216,6 +218,7 @@ def columns_mapper_entity(filename, data):
         'thd': '通话地',
         'jzh': '基站号',
         'fwh': '蜂窝号',
+        'xq': '小区',
         'thddqh': '通话地点区号',
         'dfimsi': '对方IMSI',
         'bjimsi': '本机IMSI',
@@ -324,6 +327,8 @@ def columns_mapper_entity(filename, data):
     fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'dfimsi', "(对方IMSI)")
     # Step 9 通话时长
     fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'thsc', "(时长)")
+    # Step 10 小区
+    fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'xq', "(小区)")
 
     # 标准化
     tilte_dict = {}
@@ -361,11 +366,14 @@ def columns_mapper_entity(filename, data):
         else:
             _titles.append(t)
 
+    # TODO 需要按模板
+
     logging.info("[*] entities:{}| origin_titles:{}| title:{}".format(_entities, origin_titles, _titles))
+    entities = {k: _entities[k] if k in _entities else [] for k in emulators}
     return {
         'code': 200,
         'data': {
-            'entities': _entities,
+            'entities': entities,
             'fileinfo': fileinfo,
             'origin_titles': origin_titles,
             'titles': _titles
