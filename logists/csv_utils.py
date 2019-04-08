@@ -81,16 +81,16 @@ def get_ent_type(txt):
     :param txt:
     :return:
     """
+    # (\d{4}-\d{1, 2}-\d{1, 2})\s([0 - 1][0 - 9] | (2[0 - 4])): ([0 - 5][0 - 9]):([0 - 5][0 - 9]) | ([0 - 1][0 - 9] | (2[0 - 4])): ([0 - 5][0 - 9]):([0 - 5][0 - 9]) | (\d{4}\\d{1, 2}\\d{1, 2})
     if txt is None:
         return "null"
     rules_pool = {
-
-        "sjhm": "(((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199|(147))\\d{8}|(\d{3,5}(-|\s)?)?\d{6,8})",
+        "sjhm": "^(((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199|(147))\\d{8}|(\d{3,5}(-|\s)?)?\d{6,8}(?!\d))$",
         "thsc": "((([1-5][0-9])|[1-9])秒)",
         "hjlx": "(主叫|被叫)",
         "thlx": "(本地通话|国内长途)",
         "jzh": "(SAIE)",
-        "thsj": "(([0-1][0-9]|(2[0-4])):([0-5][0-9]):([0-5][0-9])|(\d{4}-\d{2}-\d{2})|(\d{4}\\d{2}\\d{2}))",
+        "thsj": "^(\d{4}[-/]\d{1,2}[-/]\d{1,2}(\s{1,2}\d{2}:\d{2}:\d{2})?|(\d{2}:\d{2}:\d{2}))$",  # 日期 时间
         "dw": "(黑龙江|吉林|辽宁|江苏|山东|安徽|河北|河南|湖北|湖南|江西|陕西|山西|四川|青海|海南|广东|贵州|浙江|福建|台湾|甘肃|云南|内蒙古|宁夏|新疆|西藏|广西|北京|上海|天津|重庆|香港|澳门)"
     }
     # 匹配手机号
@@ -98,6 +98,8 @@ def get_ent_type(txt):
     for key, val in rules_pool.items():
         pattern = re.compile(val)
         target = pattern.search(txt)
+        # if key =='sjhm' and target:
+        #     print(target)
         if target:
             return key
     return 'unk'
@@ -149,6 +151,7 @@ def validate_format(bjhm, ent2cols, col2dats):
         else:
             return False
 
+    # print(ent2cols)
     if 'thsj' in ent2cols:
         try:
             assert len(ent2cols['thsj']) >= 1, "通话时间字段错误"
@@ -237,7 +240,7 @@ def columns_mapper_entity(filename, data):
 
     need_deal_ent = ['sjhm', 'thsj']
     entities = {e: list(cs) for e, cs in ent2cols.items() if len(cs) == 1 and e not in need_deal_ent}
-    print("one > ", entities)
+    # print("one > ", entities)
     # Step 0 处理手机号
     cols_sjhm = list(ent2cols['sjhm'])
     fileinfo = {'本机号码': bjhm if bjhm else ""}  # 文件名信息
@@ -520,7 +523,9 @@ if __name__ == '__main__':
     # filename = "13018866666的话单.csv"
     # filename = "./data/13018866666的话单.csv"
     filename = "./data/本机与对方号码都有2.xlsx"
-    # filename = "./data/13567488934标准的移动通话详单(1).xlsx"
+    # filename = "./data/18435109165.xls"
+    # filename = "./data/2018年9月份话单(1).xls"
+    filename = "./data/13567488934标准的移动通话详单(1).xlsx"
     # dat_csv = pd.read_csv(filename, header=None)
     dat_csv = pd.read_excel(filename, header=None)
     titles = list(dat_csv.columns)
