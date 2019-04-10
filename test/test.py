@@ -16,6 +16,7 @@ from logists.csv_utils import columns_mapper_entity
 def test_1():
     filename = '18518067686'
     data = [['15522453452', '2018-08-21 12:32:21', '', '短信', '1分42秒']]
+    data = [['15522453452', '201804', '', '短信', '1分42秒', '2018-08-21 12:32:21']]
     print(filename, data)
     rs = columns_mapper_entity(filename, data)
     print(rs)
@@ -62,7 +63,8 @@ def test_post_api2():
 
 
 def test_post_api3():
-    url = 'http://d65.mlamp.cn:1234/litemind/csv2graph'
+    # url = 'http://d65.mlamp.cn:1234/litemind/csv2graph'
+    url = 'http://127.0.0.1:8080/litemind/csv2graph'
 
     filename = "../data/demo.xls"
     filename = "../data/2018年9月份话单(1).xls"
@@ -72,6 +74,7 @@ def test_post_api3():
     # filename = "./data/13018866666的话单.csv"
     filename = "../data/本机与对方号码都有2.xlsx"
     filename = "../data/18435109165.xls"
+    filename = "../data/个人话单.xls"
     # filename = "../data/13567488934标准的移动通话详单(1).xlsx"
     # filename = "../data/本机与对方号码都有2.xlsx"
     dat_csv = pd.read_excel(filename, header=None)
