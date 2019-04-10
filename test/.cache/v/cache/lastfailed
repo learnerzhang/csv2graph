@@ -1,5 +1,3 @@
 {
-  "test.py": true,
-  "test.py::test_exec_file": true,
-  "test.py::test_post_api": true
+  "test.py": true
 }

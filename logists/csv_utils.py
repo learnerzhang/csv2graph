@@ -253,8 +253,8 @@ def columns_mapper_entity(filename, data):
         col2ent[c1], col2ent[c2] = 'bjhm', 'dfhm'
         ent2cols['bjhm'].add(c1)
         ent2cols['dfhm'].add(c2)
-        entities.update({'bjhm': [col1, col2]})
-        entities.update({'dfhm': [col2, col1]})
+        entities.update({'bjhm': [c1, c2]})
+        entities.update({'dfhm': [c2, c1]})
         # fileinfo.update({'isUseed': False})
     else:
         col = cols_sjhm[0]
@@ -583,7 +583,7 @@ if __name__ == '__main__':
     # filename = "./data/13035885069.xls"
     # filename = "./data/话单数据.xlsx"
     # filename = "./data/本机与对方都有的移动标准话单.xlsx"
-    filename = "./data/2018年6月份联通话单.xlsx"
+    filename = "./data/2018年6月份联通话单(1).xlsx"
     # filename = "./data/demo.xls"
 
     # dat_csv = pd.read_csv(filename, header=None)
