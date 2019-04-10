@@ -335,7 +335,11 @@ def columns_mapper_entity(filename, data):
         # print(k, v)
         # print(k, v, title_template[v])
         if v == 'unk' or v == 'null':
-            tilte_dict[k] = '第%s列' % num2chinese(k + 1)
+            if k < 25:
+                tilte_dict[k] = '第%s列' % num2chinese(k + 1)
+            else:
+                tilte_dict[k] = '第%s列' % str(k + 1)
+
         elif v in title_template:
             tilte_dict[k] = title_template[v]
 
@@ -489,6 +493,8 @@ def num2chinese(num):
         22: "二十二",
         23: "二十三",
         24: "二十四",
+        25: "二十五",
+        26: "二十六"
     }
     return num2chi[num]
 
@@ -576,6 +582,7 @@ if __name__ == '__main__':
     filename = "./data/13567488934标准的移动通话详单(1).xlsx"
     filename = "./data/13035885069.xls"
     filename = "./data/话单数据.xlsx"
+    filename = "./data/本机与对方都有的移动标准话单.xlsx"
     # filename = "./data/demo.xls"
 
     # dat_csv = pd.read_csv(filename, header=None)
