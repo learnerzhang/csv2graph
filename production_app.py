@@ -23,7 +23,8 @@ def create_argument_parser():
     parser.add_argument('-p', '--port', type=int, default=1234, help="port to run the server at")
     parser.add_argument('--auth_token', type=str,
                         help="Enable token based authentication. Requests need to provide the token to be accepted.")
-    parser.add_argument('-o', '--log_file', type=str, default="poc.log", help="store log file in specified file")
+    parser.add_argument('-o', '--log_file', type=str, dest="logfile", default="csv2graph.log",
+                        help="store log file in specified file")
     add_logging_option_arguments(parser)
 
     return parser
@@ -40,7 +41,7 @@ def add_logging_option_arguments(parser):
         action="store_const",
         dest="loglevel",
         const=logging.DEBUG,
-        default=logging.WARNING,
+        default=logging.INFO,
     )
     parser.add_argument(
         '-v', '--verbose',
@@ -85,7 +86,7 @@ def configure_file_logging(loglevel, logfile):
 def create_app(parse_args):
     """Class representing a HTTP server."""
     loglevel = parse_args.loglevel if hasattr(parse_args, "loglevel") else "INFO"
-    logfile = parse_args.loglevel if hasattr(parse_args, "logfile") else "logs/csv2graph.log"
+    logfile = parse_args.logfile if hasattr(parse_args, "logfile") else "logs/csv2graph.log"
     configure_file_logging(loglevel, logfile)
 
     app = Flask(__name__)
