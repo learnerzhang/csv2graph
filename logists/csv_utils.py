@@ -227,14 +227,12 @@ def columns_mapper_entity(filename, data):
     }
     # 获取主叫号码
     bjhm = get_phone_num(filename)  # 从文件名提前手机号,可能为None
+    fileinfo = {'本机号码': bjhm if bjhm else ""}  # 文件名信息
 
     # 转化文件名
     origin_titles, titles, col2dats = convertcol2dats(data, titleRegStr="(时间|号码|定位|类型)")
-    # print(col2dats)
     # # col -> ent # ent -> cols
     col2ent, ent2cols = title_mapper_entity(titles, col2dats)
-    # print(col2ent)
-    # print(ent2cols)
     # 验证数据是否正确
     flag, msg = validate_format(bjhm, ent2cols, col2dats)
     if not flag:
@@ -244,29 +242,9 @@ def columns_mapper_entity(filename, data):
     need_deal_ent = ['sjhm', 'thsj']
     entities = {e: list(cs) for e, cs in ent2cols.items() if len(cs) == 1 and e not in need_deal_ent}
     # print("one > ", entities)
-    # Step 0 处理手机号
-    cols_sjhm = list(ent2cols['sjhm'])
-    fileinfo = {'本机号码': bjhm if bjhm else ""}  # 文件名信息
-    if len(cols_sjhm) == 2:
-        col1, col2 = cols_sjhm[0], cols_sjhm[1]
-        c1, c2 = subject_object_phone(col1, col2, col2dats, bjhm)
-        col2ent[c1], col2ent[c2] = 'bjhm', 'dfhm'
-        ent2cols['bjhm'].add(c1)
-        ent2cols['dfhm'].add(c2)
-        entities.update({'bjhm': [c1, c2]})
-        entities.update({'dfhm': [c2, c1]})
-        # fileinfo.update({'isUseed': False})
-    else:
-        col = cols_sjhm[0]
-        col2ent[col] = 'dfhm'
-        ent2cols['dfhm'] = col
-        # entities.update({'bjhm': ['文件名']})
-        entities.update({'dfhm': cols_sjhm})
-        # fileinfo.update({'isUseed': True})
 
     # Step 1 处理通话时间
     cols_thsj = list(ent2cols['thsj'])
-    # print("通话时间", cols_thsj)
     if len(cols_thsj) == 2:
         col1, col2 = cols_thsj[0], cols_thsj[1]
         rs = compare_time(col1, col2, col2dats)
@@ -326,7 +304,9 @@ def columns_mapper_entity(filename, data):
     # Step 小区
     fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, 'xq', "(小区)")
     # Step IMSI
-    fill_imsi(col2dats, ent2cols, col2ent, titles, origin_titles, entities, "(IMSI)")
+    fill_imsi(col2dats, ent2cols, col2ent, titles, origin_titles, entities)
+    # Step 号码
+    fill_phone(col2dats, ent2cols, col2ent, titles, origin_titles, entities, bjhm)
 
     # 标准化
     tilte_dict = {}
@@ -397,7 +377,42 @@ def fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, key, re
                 entities.update({key: [i]})
 
 
-def fill_imsi(col_dat, ent2cols, col2ent, titles, origin_titles, entities, regStr="(IMSI)"):
+def fill_phone(col2dats, ent2cols, col2ent, titles, origin_titles, entities, bjhm):
+    if origin_titles:
+        # 通过title处理
+        for i, title in enumerate(origin_titles):
+            if isinstance(containsTitleKey(title, regStr=str("(本机号码|主号码)")), bool):
+                ent2cols['bjhm'].add(i)
+                col2ent[i] = title
+                titles[i] = title
+                entities.update({'bjhm': [i]})
+            if isinstance(containsTitleKey(title, regStr=str("(对方号码)")), bool):
+                ent2cols['dfhm'].add(i)
+                col2ent[i] = title
+                titles[i] = title
+                entities.update({'dfhm': [i]})
+
+    if 'dfhm' not in entities or 'bjhm' not in entities:
+        cols_sjhm = list(ent2cols['sjhm'])
+        if len(cols_sjhm) == 2:
+            col1, col2 = cols_sjhm[0], cols_sjhm[1]
+            c1, c2 = subject_object_phone(col1, col2, col2dats, bjhm)
+            col2ent[c1], col2ent[c2] = 'bjhm', 'dfhm'
+            ent2cols['bjhm'].add(c1)
+            ent2cols['dfhm'].add(c2)
+            if 'bjhm' not in entities:
+                entities.update({'bjhm': [c1, c2]})
+            if 'dfhm' not in entities:
+                entities.update({'dfhm': [c2, c1]})
+        else:
+            col = cols_sjhm[0]
+            col2ent[col] = 'dfhm'
+            ent2cols['dfhm'] = col
+            entities.update({'dfhm': cols_sjhm})
+
+
+def fill_imsi(col_dat, ent2cols, col2ent, titles, origin_titles, entities):
+    regStr = "(IMSI)"
     if origin_titles:
         tmp = []
         for i, title in enumerate(origin_titles):
@@ -584,6 +599,7 @@ if __name__ == '__main__':
     # filename = "./data/话单数据.xlsx"
     # filename = "./data/本机与对方都有的移动标准话单.xlsx"
     filename = "./data/2018年6月份联通话单(1).xlsx"
+    # filename = "./data/本机与对方都有的移动标准话单 - 副本.xlsx"
     # filename = "./data/demo.xls"
 
     # dat_csv = pd.read_csv(filename, header=None)
