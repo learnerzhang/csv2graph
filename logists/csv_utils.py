@@ -275,7 +275,7 @@ def columns_mapper_entity(filename, data):
             ent2cols['thjssj'].add(col1)
             entities.update({'thjssj': [col1, col2]})
             entities.update({'thkssj': [col2, col1]})
-    else:
+    elif len(cols_thsj) == 1:
         col = cols_thsj[0]
         ent2cols['thkssj'].add(col)
         ent2cols['thjssj'].add(col)
@@ -611,13 +611,13 @@ if __name__ == '__main__':
     # filename = "./data/2018年9月份话单(1).xls"
     # filename = "./data/13567488934标准的移动通话详单(1).xlsx"
     # filename = "./data/13035885069.xls"
-    # filename = "./data/话单数据.xlsx"
+    filename = "./data/话单数据.xlsx"
     # filename = "./data/本机与对方都有的移动标准话单.xlsx"
     # filename = "./data/本机与对方都有的移动标准话单(2).xlsx"
     # filename = "./data/13567488934标准的移动通话详单.xlsx"
     # filename = "./data/本机与对方都有的移动标准话单 - 副本.xlsx"
     # filename = "./data/demo.xls"
-    filename = "./data/话单数据.xlsx"
+    # filename = "./data/话单数据.xlsx"
 
     # dat_csv = pd.read_csv(filename, header=None)
     dat_csv = pd.read_excel(filename, header=None)

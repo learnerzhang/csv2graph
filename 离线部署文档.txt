@@ -1,3 +1,5 @@
+### 保证在项目目录下执行以下命令
+
 1.  开启虚拟环境
 
 step1:  (查找py3的安装路径)
@@ -20,4 +22,8 @@ pip install --no-index --find-links=./dependences -r requirements.txt
 3. 开启服务
 
 
-python production_app.py  -p 1234 -o logs/csv2graph.log
+nohup python -u production_app.py  -p 1234 -o logs/csv2graph.log > log.out 2>&1 &
+
+
+-- python production_app.py  -p 1234 -o logs/csv2graph.log
+-- nohup python  production_app.py  -p 1234 -o logs/csv2graph.log > log.out 2>&1 &

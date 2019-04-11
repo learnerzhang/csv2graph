@@ -49,5 +49,9 @@ docker run -d --net=host -v $(pwd)/docker_logs:/csv2graph/logs csv2graph -p 1234
     
 ## python 离线安装
 
-pip install --no-index --find-links=file:///path_to/packages/dependences -r requirements.txt
+    pip install --no-index --find-links=file:///path_to/packages/dependences -r requirements.txt
 
+
+## 打包项目
+
+    tar -zcvf  csv2graph.tar.gz --exclude=csv2graph/dependences  csv2graph
