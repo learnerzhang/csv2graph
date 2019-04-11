@@ -135,7 +135,7 @@ def title_mapper_entity(title, col2dats):
     return col2ent, ent2cols
 
 
-def validate_format(bjhm, ent2cols, col2dats):
+def validate_format(bjhm, ent2cols, col2dats, origin_titles):
     """验证表单的是否异常
         1、包含两列手机号, 一列时间
         2、文件名吧包含手机号、文件存在一列手机号, 一列时间
@@ -152,6 +152,19 @@ def validate_format(bjhm, ent2cols, col2dats):
             return True
         else:
             return False
+
+    if origin_titles:
+        sjhm_count = 0
+        for title in origin_titles:
+            if isinstance(containsTitleKey(title, regStr=str("(本机号码|主号码|对方号码|号码)")), bool):
+                sjhm_count += 1
+
+        sj_flag = False
+        for title in origin_titles:
+            if isinstance(containsTitleKey(title, regStr=str("(通话时间|通话开始时间)")), bool):
+                sj_flag = True
+        if (sjhm_count >= 2 and sj_flag) or (sjhm_count == 1 and sj_flag and bjhm):
+            return True
 
     # print(ent2cols)
     if 'thsj' in ent2cols:
@@ -234,7 +247,7 @@ def columns_mapper_entity(filename, data):
     # # col -> ent # ent -> cols
     col2ent, ent2cols = title_mapper_entity(titles, col2dats)
     # 验证数据是否正确
-    flag, msg = validate_format(bjhm, ent2cols, col2dats)
+    flag, msg = validate_format(bjhm, ent2cols, col2dats, origin_titles)
     if not flag:
         logging.warning("数据格式不正确, 返回文件格式异常错误")
         return {'code': 202, 'msg': msg}
@@ -598,7 +611,8 @@ if __name__ == '__main__':
     # filename = "./data/13035885069.xls"
     # filename = "./data/话单数据.xlsx"
     # filename = "./data/本机与对方都有的移动标准话单.xlsx"
-    filename = "./data/2018年6月份联通话单(1).xlsx"
+    filename = "./data/本机与对方都有的移动标准话单(2).xlsx"
+    filename = "./data/13567488934标准的移动通话详单.xlsx"
     # filename = "./data/本机与对方都有的移动标准话单 - 副本.xlsx"
     # filename = "./data/demo.xls"
 
