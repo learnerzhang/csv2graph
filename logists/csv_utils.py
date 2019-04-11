@@ -258,30 +258,6 @@ def columns_mapper_entity(filename, data):
     entities = {e: list(cs) for e, cs in ent2cols.items() if len(cs) == 1 and e not in need_deal_ent}
     # print("one > ", entities)
 
-    # Step 1 处理通话时间
-    cols_thsj = list(ent2cols['thsj'])
-    if len(cols_thsj) == 2:
-        col1, col2 = cols_thsj[0], cols_thsj[1]
-        rs = compare_time(col1, col2, col2dats)
-        if rs == 1:
-            col2ent[col1], col2ent[col2] = 'thkssj', 'thjssj'
-            ent2cols['thkssj'].add(col1)
-            ent2cols['thjssj'].add(col2)
-            entities.update({'thkssj': [col1, col2]})
-            entities.update({'thjssj': [col2, col1]})
-        else:  # None, -1, 0
-            col2ent[col2], col2ent[col1] = 'thkssj', 'thjssj'
-            ent2cols['thkssj'].add(col2)
-            ent2cols['thjssj'].add(col1)
-            entities.update({'thjssj': [col1, col2]})
-            entities.update({'thkssj': [col2, col1]})
-    elif len(cols_thsj) == 1:
-        col = cols_thsj[0]
-        ent2cols['thkssj'].add(col)
-        ent2cols['thjssj'].add(col)
-        entities.update({'thkssj': cols_thsj})
-        entities.update({'thjssj': cols_thsj})
-
     # step 1 处理位置
     cols_dw = list(ent2cols['dw'])
     if len(cols_dw) == 2:
@@ -322,6 +298,9 @@ def columns_mapper_entity(filename, data):
     fill_imsi(col2dats, ent2cols, col2ent, titles, origin_titles, entities)
     # Step 号码
     fill_phone(col2dats, ent2cols, col2ent, titles, origin_titles, entities, bjhm)
+
+    # Step 通话时间
+    fill_time(col2dats, ent2cols, col2ent, titles, origin_titles, entities)
 
     # 标准化
     tilte_dict = {}
@@ -390,6 +369,47 @@ def fill_slot_origin(ent2cols, col2ent, titles, origin_titles, entities, key, re
                 col2ent[i] = title
                 titles[i] = title
                 entities.update({key: [i]})
+
+
+def fill_time(col2dats, ent2cols, col2ent, titles, origin_titles, entities):
+    if origin_titles:
+        # 通过title处理
+        for i, title in enumerate(origin_titles):
+            if isinstance(containsTitleKey(title, regStr=str("(通话开始时间|开始时间)")), bool):
+                ent2cols['thkssj'].add(i)
+                col2ent[i] = title
+                titles[i] = title
+                entities.update({'thkssj': [i]})
+            if isinstance(containsTitleKey(title, regStr=str("(通话结束时间|结束时间)")), bool):
+                ent2cols['thjssj'].add(i)
+                col2ent[i] = title
+                titles[i] = title
+                entities.update({'thjssj': [i]})
+
+    if 'thkssj' not in entities or 'thjssj' not in entities:
+        # Step 1 处理通话时间
+        cols_thsj = list(ent2cols['thsj'])
+        if len(cols_thsj) >= 2:
+            col1, col2 = cols_thsj[0], cols_thsj[1]
+            rs = compare_time(col1, col2, col2dats)
+            if rs == 1:
+                col2ent[col1], col2ent[col2] = 'thkssj', 'thjssj'
+                ent2cols['thkssj'].add(col1)
+                ent2cols['thjssj'].add(col2)
+                entities.update({'thkssj': [col1, col2]})
+                entities.update({'thjssj': [col2, col1]})
+            else:  # None, -1, 0
+                col2ent[col2], col2ent[col1] = 'thkssj', 'thjssj'
+                ent2cols['thkssj'].add(col2)
+                ent2cols['thjssj'].add(col1)
+                entities.update({'thjssj': [col1, col2]})
+                entities.update({'thkssj': [col2, col1]})
+        elif len(cols_thsj) == 1:
+            col = cols_thsj[0]
+            ent2cols['thkssj'].add(col)
+            ent2cols['thjssj'].add(col)
+            entities.update({'thkssj': cols_thsj})
+            entities.update({'thjssj': cols_thsj})
 
 
 def fill_phone(col2dats, ent2cols, col2ent, titles, origin_titles, entities, bjhm):
