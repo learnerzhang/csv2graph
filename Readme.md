@@ -45,3 +45,9 @@ docker run -d --net=host -v $(pwd)/docker_logs:/csv2graph/logs csv2graph -p 1234
     docker run -d -p 1234:1234 -v $(pwd)/docker_logs:/csv2graph/logs csv2graph -p 1234
     # 设置为8080
     docker run -d -p 8080:1134 -v $(pwd)/docker_logs:/csv2graph/logs csv2graph -p 1134
+    
+    
+## python 离线安装
+
+pip install --no-index --find-links=file:///path_to/packages/dependences -r requirements.txt
+

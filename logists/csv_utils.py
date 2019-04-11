@@ -164,7 +164,7 @@ def validate_format(bjhm, ent2cols, col2dats, origin_titles):
             if isinstance(containsTitleKey(title, regStr=str("(通话时间|通话开始时间)")), bool):
                 sj_flag = True
         if (sjhm_count >= 2 and sj_flag) or (sjhm_count == 1 and sj_flag and bjhm):
-            return True
+            return True, ""
 
     # print(ent2cols)
     if 'thsj' in ent2cols:
@@ -602,17 +602,17 @@ def date2timestamp(date):
 
 if __name__ == '__main__':
     filename = "./data/13035885069(话单数据).xls"
-    # filename = "13018866666的话单.csv"
-    # filename = "./data/13018866666的话单.csv"
-    # filename = "./data/本机与对方号码都有2.xlsx"
-    # filename = "./data/18435109165.xls"
+    filename = "13018866666的话单.csv"
+    filename = "./data/13018866666的话单.csv"
+    filename = "./data/本机与对方号码都有2.xlsx"
+    filename = "./data/18435109165.xls"
     # filename = "./data/2018年9月份话单(1).xls"
     # filename = "./data/13567488934标准的移动通话详单(1).xlsx"
     # filename = "./data/13035885069.xls"
     # filename = "./data/话单数据.xlsx"
     # filename = "./data/本机与对方都有的移动标准话单.xlsx"
-    filename = "./data/本机与对方都有的移动标准话单(2).xlsx"
-    filename = "./data/13567488934标准的移动通话详单.xlsx"
+    # filename = "./data/本机与对方都有的移动标准话单(2).xlsx"
+    # filename = "./data/13567488934标准的移动通话详单.xlsx"
     # filename = "./data/本机与对方都有的移动标准话单 - 副本.xlsx"
     # filename = "./data/demo.xls"
 
