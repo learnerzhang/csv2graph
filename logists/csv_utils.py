@@ -43,6 +43,9 @@ def convertcol2dats(data, titleRegStr):
         c2: [d21, d22,...]
     }
     """
+
+    titles = list(range(0, max([len(dat) for dat in data])))
+
     col2dats = collections.defaultdict(list)
     # 取第一行做表头判断
     valid_head = collections.Counter([containsTitleKey(d, titleRegStr) for d in data[0] if d]).most_common(1)[0]
@@ -53,7 +56,6 @@ def convertcol2dats(data, titleRegStr):
     else:
         origin_titles = []
 
-    titles = list(range(0, len(data[0])))
     for dat in data:
         for i, (col, val) in enumerate(zip(titles, dat)):
             col2dats[col].append(val)
