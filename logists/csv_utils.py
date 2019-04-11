@@ -161,7 +161,7 @@ def validate_format(bjhm, ent2cols, col2dats, origin_titles):
 
         sj_flag = False
         for title in origin_titles:
-            if isinstance(containsTitleKey(title, regStr=str("(通话时间|通话开始时间|起始时间)")), bool):
+            if isinstance(containsTitleKey(title, regStr=str("(通话时间|通话开始时间|起始时间|日期)")), bool):
                 sj_flag = True
         if (sjhm_count >= 2 and sj_flag) or (sjhm_count == 1 and sj_flag and bjhm):
             return True, ""
@@ -615,6 +615,7 @@ if __name__ == '__main__':
     # filename = "./data/13567488934标准的移动通话详单.xlsx"
     # filename = "./data/本机与对方都有的移动标准话单 - 副本.xlsx"
     # filename = "./data/demo.xls"
+    filename = "./data/话单数据.xlsx"
 
     # dat_csv = pd.read_csv(filename, header=None)
     dat_csv = pd.read_excel(filename, header=None)
